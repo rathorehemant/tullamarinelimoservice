@@ -204,3 +204,544 @@ if ( ! function_exists( 'twentytwentyfour_pattern_categories' ) ) :
 endif;
 
 add_action( 'init', 'twentytwentyfour_pattern_categories' );
+
+
+
+add_shortcode('without_map','shortcode_function_without_map');
+
+function shortcode_function_without_map()
+{
+	
+	?>
+	<div class="formbold-main-wrapper">
+  <!-- Author: FormBold Team -->
+  <!-- Learn More: https://formbold.com -->
+  <div class="formbold-form-wrapper">
+    <form action="<?=site_url('book-now') ?>" method="POST">
+        <div class="formbold-input-flex">
+          <div>
+              <select id="select_vehicle"
+              class="formbold-form-input" name = "vehicle">
+
+			  <option value="">SELECT VEHICLE</option>	
+			<option  value="Sedan">Sedan</option>
+			<option value="SUV">SUV</option>
+			<option value="Van">Van</option>
+			</select>
+              <label for="select_vehicle" class="formbold-form-label"> SELECT VEHICLE </label>
+          </div>
+          <div>
+              <input
+              type="text"
+			  id="origin" name="origin" name = "origin"
+              placeholder="Enter pickup"
+              class="formbold-form-input"
+              />
+
+			  <!-- <input type="text" name="myAddress" placeholder="Enter your address" value="333 Alberta Place, Prince Rupert, BC, Canada" id="myAddress"/> -->
+
+
+
+              <label for="pickup" class="formbold-form-label"> pickup </label>
+          </div>
+		  <div>
+              <input
+              type="text"
+              id="destination" name="destination" 
+              placeholder="Enter destination"
+              class="formbold-form-input"
+              />
+              <label for="destination" class="formbold-form-label"> Destination </label>
+          </div>
+        </div>
+		
+		
+		<p id = "distance" name ="distance"></p>
+		<p id = "estimation" name="estimation"></p>
+		<input type = "hidden"  name ="distance" id = distance_field></p>
+        <input type = "hidden"  name ="estimation" id = "estimation_field"></p>
+          
+        
+
+        
+
+       
+
+        <button class="formbold-btn" id="book_now" style = "display:none">
+            Book Now
+        </button>
+		
+    </form>
+  </div>
+</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    font-family: "Inter", sans-serif;
+  }
+  .formbold-main-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+  }
+
+  .formbold-form-wrapper {
+    margin: 0 auto;
+    max-width: 550px;
+    width: 100%;
+    background: white;
+  }
+
+  .formbold-input-flex {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 22px;
+  }
+  .formbold-input-flex > div {
+    width: 50%;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .formbold-textarea {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .formbold-form-input {
+    width: 100%;
+    padding-bottom: 10px;
+    border: none;
+    border-bottom: 1px solid #DDE3EC;
+    background: #FFFFFF;
+    font-weight: 500;
+    font-size: 16px;
+    color: #07074D;
+    outline: none;
+    resize: none;
+  }
+  .formbold-form-input::placeholder {
+    color: #536387;
+  }
+  .formbold-form-input:focus {
+    border-color: #6A64F1;
+  }
+  .formbold-form-label {
+    color: #07074D;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 24px;
+    display: block;
+    margin-bottom: 18px;
+  }
+  .formbold-form-input:focus + .formbold-form-label {
+    color: #6A64F1;
+  }
+
+  .formbold-input-file {
+    margin-top: 30px;
+  }
+  .formbold-input-file input[type="file"] {
+    position: absolute;
+    top: 6px;
+    left: 0;
+    z-index: -1;
+  }
+  .formbold-input-file .formbold-input-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+  }
+
+  .formbold-filename-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 22px;
+  }
+  .formbold-filename {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    line-height: 24px;
+    color: #536387;
+  }
+  .formbold-filename svg {
+    cursor: pointer;
+  }
+
+  .formbold-btn {
+    font-size: 16px;
+    border-radius: 5px;
+    padding: 12px 25px;
+    border: none;
+    font-weight: 500;
+    background-color: #6A64F1;
+    color: white;
+    cursor: pointer;
+    margin-top: 25px;
+  }
+  .formbold-btn:hover {
+    box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+  }
+
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<script>
+
+function initMap() {
+    const addAutocompleteToInputs = (inputs, country) => {
+        inputs.forEach((input) => {
+            new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country }
+            });
+        });
+    };
+
+	const callbackfunction = (e) => {
+	setTimeout(() => {
+		const originInput = document.getElementById('origin').value;
+        const destinationInput = document.getElementById('destination').value;
+		const vehicle = document.getElementById('select_vehicle').value;
+		
+		if(vehicle != '' && originInput != '' && destinationInput != '' ){
+			calculateDistance(originInput,destinationInput,vehicle);
+		}else{
+			alert('please fill all');
+			return false;
+		}
+	}, 100);
+
+
+	};
+
+    const calculateDistance = (origin, destination, vehicle) => {
+    const originInput = document.getElementById('origin');
+    const destinationInput = document.getElementById('destination');
+    const distanceResult = document.getElementById('distance');
+	const costResult = document.getElementById('estimation');
+	const book_now = document.getElementById('book_now');
+
+  const distance_field = document.getElementById('distance_field');
+  const estimation_field = document.getElementById('estimation_field');
+	
+
+    const costPerKm = 1;
+    let minimumcost;
+    let cost;
+
+    const service = new google.maps.DistanceMatrixService();
+
+    service.getDistanceMatrix({
+        origins: [origin],
+        destinations: [destination],
+        travelMode: 'DRIVING',
+        unitSystem: google.maps.UnitSystem.METRIC,
+        avoidHighways: false,
+        avoidTolls: false,
+        region: 'AU'
+    }, (response, status) => {
+        if (status === 'OK') {
+            const distanceText = response.rows[0].elements[0].distance.text;
+			
+            const distance = parseFloat(distanceText.replace(' km', '')); // Convert string to float
+            
+			const totalDistance = (response.rows[0].elements[0].distance.value / 1000).toFixed(2); // Convert meters to kilometers and round to two decimal places
+
+
+           const type = {
+				'Sedan': 2.90,
+				'SUV': 3.60,
+				'Van': 4.80
+		   }
+			cost = (totalDistance * type[vehicle]).toFixed(2);
+
+            
+
+			distanceResult.innerHTML = `Total Distance: ${totalDistance} Kms`;
+			if(totalDistance > 0){
+			costResult.innerHTML = `Estimation Cost: AUD ${cost}`;
+      distance_field.value = totalDistance
+      estimation_field.value = cost
+			book_now.style.display = 'inline-block';
+
+			}
+        } else {
+            alert(`Error: ${status}`);
+        }
+    });
+};
+
+
+    const init = () => {
+        const originInput = document.getElementById('origin');
+        const destinationInput = document.getElementById('destination');
+        const calculateButton = document.getElementById('calculate');
+
+        addAutocompleteToInputs([originInput, destinationInput], 'AU');
+
+        destinationInput.addEventListener('change', (e) => callbackfunction(e));
+    };
+
+    // Ensure that the Google Maps API is loaded before initializing
+    if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+        init();
+    } else {
+        console.error('Google Maps API not loaded.');
+    }
+}
+
+(function () {
+    'use strict';
+    // Load the Google Maps API asynchronously
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCTVlf3KAMyXncVMDc-09AxnP_M4WA8HOA&libraries=places&callback=initMap';
+    script.defer = true;
+    script.async = true;
+    document.head.appendChild(script);
+
+})();
+
+
+
+
+
+
+
+</script>
+
+
+
+<?php }
+
+
+function print_r_content() {
+  $your_variable = $_POST;
+  echo '<pre>';
+  print_r($your_variable);
+  echo '</pre>';
+
+ 
+
+  
+}
+add_shortcode('print_r_shortcode', 'print_r_content');
+
+
+function print_current_page_slug() {
+  echo $current_page_slug = get_post_field('post_name', get_post());
+
+  if ($current_page_slug === 'book-now') {
+      book_now_page_customise();
+  }
+
+ 
+}
+
+add_action('wp_footer', 'print_current_page_slug');
+
+
+
+function book_now_page_customise(){?>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js"></script>
+</head>
+<script>
+$(document).ready(function(){
+
+  $("#date").datetimepicker({
+      minDate: 0, // Disable past dates
+      format: 'Y-m-d H:i', // You can customize the format as needed
+    });
+
+
+    $("#return-date").datetimepicker({
+      minDate: 0, // Disable past dates
+      format: 'Y-m-d H:i', // You can customize the format as needed
+    });
+
+  <?php if(isset($_POST['origin'])): ?>
+        $("#origin").val("<?php echo $_POST['origin']; ?>");
+    <?php endif; ?>
+
+    <?php if(isset($_POST['destination'])): ?>
+        $("#destination").val("<?php echo $_POST['destination']; ?>");
+    <?php endif; ?>
+
+    <?php if(isset($_POST['vehicle'])): ?>
+        $("#vehicle").val("<?php echo $_POST['vehicle']; ?>");
+    <?php endif; ?>
+
+    <?php if(isset($_POST['distance'])): ?>
+        $("#distance").val("<?php echo $_POST['distance']; ?>");
+    <?php endif; ?>
+
+    <?php if(isset($_POST['estimation'])): ?>
+        $("#estimation").val("<?php echo $_POST['estimation']; ?>");
+    <?php endif; ?>
+
+
+
+    <?php if(!isset($_POST['origin'])): ?>
+        $("#origin").removeAttr('readonly');
+    <?php endif; ?>
+
+    <?php if(!isset($_POST['destination'])): ?>
+        $("#destination").removeAttr('readonly');
+    <?php endif; ?>
+
+    
+
+    
+
+});
+
+
+function initMap() {
+  
+       
+  
+    const addAutocompleteToInputs = (inputs, country) => {
+        inputs.forEach((input) => {
+            new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country }
+            });
+        });
+    };
+
+    
+
+
+    const callbackfunction = (e) => {
+	  setTimeout(() => {
+		const originInput = document.getElementById('origin').value;
+        const destinationInput = document.getElementById('destination').value;
+		const vehicle = document.getElementById('vehicle').value;
+		
+		if(vehicle != '' && originInput != '' && destinationInput != '' ){
+			calculateDistance(originInput,destinationInput,vehicle);
+		}else{
+			alert('please fill all');
+			return false;
+		}
+	}, 100);
+
+
+	};
+
+
+
+  const calculateDistance = (origin, destination, vehicle) => {
+    const originInput = document.getElementById('origin');
+    const destinationInput = document.getElementById('destination');
+    const distanceResult = document.getElementById('distance');
+	const costResult = document.getElementById('estimation');
+	
+    const costPerKm = 1;
+    let minimumcost;
+    let cost;
+
+    const service = new google.maps.DistanceMatrixService();
+
+    service.getDistanceMatrix({
+        origins: [origin],
+        destinations: [destination],
+        travelMode: 'DRIVING',
+        unitSystem: google.maps.UnitSystem.METRIC,
+        avoidHighways: false,
+        avoidTolls: false,
+        region: 'AU'
+    }, (response, status) => {
+        if (status === 'OK') {
+            const distanceText = response.rows[0].elements[0].distance.text;
+			
+            const distance = parseFloat(distanceText.replace(' km', '')); // Convert string to float
+            
+			const totalDistance = (response.rows[0].elements[0].distance.value / 1000).toFixed(2); // Convert meters to kilometers and round to two decimal places
+
+
+           const type = {
+				'Sedan': 2.90,
+				'SUV': 3.60,
+				'Van': 4.80
+		   }
+			cost = (totalDistance * type[vehicle]).toFixed(2);
+
+            
+
+			if(totalDistance > 0){
+      distanceResult.value = totalDistance
+      costResult.value = cost
+			
+
+			}
+        } else {
+            alert(`Error: ${status}`);
+        }
+    });
+};
+
+	
+
+
+    const init = () => {
+      const origin = document.getElementById('origin');
+        const destination = document.getElementById('destination');
+
+        const originInput = document.getElementById('return-origin');
+        const destinationInput = document.getElementById('return-destination');
+        
+      
+
+
+        <?php if(isset($_POST['origin']) && isset($_POST['destination'])): ?>
+          addAutocompleteToInputs([originInput, destinationInput], 'AU');
+        
+    <?php else: ?>
+      addAutocompleteToInputs([origin, destination, originInput, destinationInput], 'AU');
+    <?php endif; ?>
+
+    
+
+  
+
+
+        
+        destination.addEventListener('change', (e) => callbackfunction(e));
+    };
+
+    // Ensure that the Google Maps API is loaded before initializing
+    if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+        init();
+    } else {
+        console.error('Google Maps API not loaded.');
+    }
+}
+
+(function () {
+    'use strict';
+    // Load the Google Maps API asynchronously
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCTVlf3KAMyXncVMDc-09AxnP_M4WA8HOA&libraries=places&callback=initMap';
+    script.defer = true;
+    script.async = true;
+    document.head.appendChild(script);
+
+})();
+</script>
+
+
+<?php } 
+
+
